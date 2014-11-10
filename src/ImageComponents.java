@@ -65,28 +65,23 @@ public class ImageComponents extends JFrame implements ActionListener {
     }         // Part of your UNION-FIND implementation. You need to complete the implementation of this.
 
     void union(int pixelID1, int pixelID2) {
-        if (biWorking.getRGB(getXcoord(pixelID1), getYcoord(pixelID1))
-            == biWorking.getRGB(getXcoord(pixelID2), getYcoord(pixelID2))) {
-            pixelID1 = find(pixelID1);
-            pixelID2 = find(pixelID2);
-            int x1 = getXcoord(pixelID1);
-            int x2 = getXcoord(pixelID2);
-            int y1 = getYcoord(pixelID1);
-            int y2 = getYcoord(pixelID2);
-            if (x1 != x2 || y1 != y2) {
-                if (x1 != x2) {
-                    if (x1 < x2) {
-                        parentID[y2][x2] = pixelID1;
-                    } else {
-                        parentID[y1][x1] = pixelID2;
-                    }
-                } else {
-                    if (y1 < y2) {
-                        parentID[y2][x2] = pixelID1;
-                    } else {
-                        parentID[y1][x1] = pixelID2;
-                    }
-                }
+        pixelID1 = find(pixelID1);
+        pixelID2 = find(pixelID2);
+        int x1 = getXcoord(pixelID1);
+        int x2 = getXcoord(pixelID2);
+        int y1 = getYcoord(pixelID1);
+        int y2 = getYcoord(pixelID2);
+        if (x1 != x2) {
+            if (x1 < x2) {
+                parentID[y2][x2] = pixelID1;
+            } else {
+                parentID[y1][x1] = pixelID2;
+            }
+        } else {
+            if (y1 < y2) {
+                parentID[y2][x2] = pixelID1;
+            } else {
+                parentID[y1][x1] = pixelID2;
             }
         }
     }  // Another part of your UNION-FIND implementation.  Also complete this one.
@@ -388,13 +383,15 @@ public class ImageComponents extends JFrame implements ActionListener {
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 int currPixelID = (y) * w + x;
-                if (x < w - 1) {
-                    int neighborPixelID = y * w + x + 1;
+                int neighborPixelID = y * w + x + 1;
+                if (x < w - 1 && find(currPixelID) != find(neighborPixelID)
+                    && biWorking.getRGB(x, y) == biWorking.getRGB(x + 1, y)) {
                     union(currPixelID, neighborPixelID);
                     count++;
                 }
-                if (y < h - 1) {
-                    int neighborPixelID = (y + 1) * w + x;
+                neighborPixelID = (y + 1) * w + x;
+                if (y < h - 1 && find(currPixelID) != find(neighborPixelID)
+                    && biWorking.getRGB(x, y) == biWorking.getRGB(x, y + 1)) {
                     union(currPixelID, neighborPixelID);
                     count++;
                 }
