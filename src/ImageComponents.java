@@ -399,25 +399,16 @@ public class ImageComponents extends JFrame implements ActionListener {
         }
         System.out.println("The number of times that the method UNION was called for this image is: " + count + ".");
         count = 0;
-        for (int[] pixelRow: parentID) {
-            for (int currParentID: pixelRow) {
-                if (currParentID == -1) {
+        HashMap<Integer, Integer> componentNumber = new HashMap<Integer, Integer>();
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                if (parentID[y][x] == -1) {
+                    componentNumber.put(y * w + x, count);
                     count++;
                 }
             }
         }
         System.out.println("The number of connected components in this image is: " + count + ".");
-        HashMap<Integer, Integer> componentNumber = new HashMap<Integer, Integer>();
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                Integer rootID = find(y * w + x);
-                if (componentNumber.containsKey(rootID)) {
-                    componentNumber.put(rootID, componentNumber.get(rootID) + 1);
-                } else {
-                    componentNumber.put(rootID, 1);
-                }
-            }
-        }
         ProgressiveColors progressiveColors = new ProgressiveColors();
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
