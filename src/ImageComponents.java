@@ -71,18 +71,10 @@ public class ImageComponents extends JFrame implements ActionListener {
         int x2 = getXcoord(pixelID2);
         int y1 = getYcoord(pixelID1);
         int y2 = getYcoord(pixelID2);
-        if (x1 != x2) {
-            if (x1 < x2) {
-                parentID[y2][x2] = pixelID1;
-            } else {
-                parentID[y1][x1] = pixelID2;
-            }
+        if (pixelID1 < pixelID2) {
+            parentID[y2][x2] = pixelID1;
         } else {
-            if (y1 < y2) {
-                parentID[y2][x2] = pixelID1;
-            } else {
-                parentID[y1][x1] = pixelID2;
-            }
+            parentID[y1][x1] = pixelID2;
         }
     }  // Another part of your UNION-FIND implementation.  Also complete this one.
 
