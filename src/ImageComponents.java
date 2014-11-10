@@ -13,6 +13,8 @@
  * 
  */ 
 
+import com.sun.javaws.progress.Progress;
+
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
@@ -382,20 +384,24 @@ public class ImageComponents extends JFrame implements ActionListener {
 
     
     void computeConnectedComponents() {
+        int count = 0;
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 int currPixelID = (y) * w + x;
                 if (x < w - 1) {
                     int neighborPixelID = y * w + x + 1;
                     union(currPixelID, neighborPixelID);
+                    count++;
                 }
                 if (y < h - 1) {
                     int neighborPixelID = (y + 1) * w + x;
                     union(currPixelID, neighborPixelID);
+                    count++;
                 }
             }
         }
-        int count = 0;
+        System.out.println("The number of times that the method UNION was called for this image is: " + count + ".");
+        count = 0;
         for (int[] pixelRow: parentID) {
             for (int currParentID: pixelRow) {
                 if (currParentID == -1) {
@@ -404,6 +410,28 @@ public class ImageComponents extends JFrame implements ActionListener {
             }
         }
         System.out.println("The number of connected components in this image is: " + count + ".");
+        HashMap<Integer, Integer> componentNumber = new HashMap<Integer, Integer>();
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                Integer rootID = Integer.valueOf(find(y * w + x));
+                if (componentNumber.containsKey(rootID)) {
+                    componentNumber.put(rootID, Integer.valueOf(componentNumber.get(rootID).intValue() + 1));
+                } else {
+                    componentNumber.put(rootID, Integer.valueOf(1));
+                }
+
+            }
+        }
+        ProgressiveColors progressiveColors = new ProgressiveColors();
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                Integer rootID = Integer.valueOf(find(y * w + x));
+                int[] rgb = progressiveColors.progressiveColor(componentNumber.get(rootID).intValue());
+                putPixel(biWorking, x, y, rgb[0], rgb[1], rgb[2]);
+            }
+        }
+        repaint();
+
     }
 
     /* This main method can be used to run the application. */
