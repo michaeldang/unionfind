@@ -410,20 +410,19 @@ public class ImageComponents extends JFrame implements ActionListener {
         HashMap<Integer, Integer> componentNumber = new HashMap<Integer, Integer>();
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
-                Integer rootID = Integer.valueOf(find(y * w + x));
+                Integer rootID = find(y * w + x);
                 if (componentNumber.containsKey(rootID)) {
-                    componentNumber.put(rootID, Integer.valueOf(componentNumber.get(rootID).intValue() + 1));
+                    componentNumber.put(rootID, componentNumber.get(rootID) + 1);
                 } else {
-                    componentNumber.put(rootID, Integer.valueOf(1));
+                    componentNumber.put(rootID, 1);
                 }
-
             }
         }
         ProgressiveColors progressiveColors = new ProgressiveColors();
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
-                Integer rootID = Integer.valueOf(find(y * w + x));
-                int[] rgb = progressiveColors.progressiveColor(componentNumber.get(rootID).intValue());
+                Integer rootID = find(y * w + x);
+                int[] rgb = progressiveColors.progressiveColor(componentNumber.get(rootID));
                 putPixel(biWorking, x, y, rgb[0], rgb[1], rgb[2]);
             }
         }
