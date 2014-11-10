@@ -1,7 +1,9 @@
 /*
  * ImageComponents.java
- * Starter code for A4 // Change this line to "A4 Solution by " + YOUR_NAME and UWNetID.
- * 
+ * A4 Solution by Michael Dang 1235845.
+ *
+ * This program allows images to be edited with various image tools. In addition to allowing the images to be
+ * manipulated, this program can use also use UNION-FIND logic to recolor the image.
  * 
  * CSE 373, University of Washington, Autumn 2014.
  * 
@@ -57,6 +59,11 @@ public class ImageComponents extends JFrame implements ActionListener {
 
     int[][] parentID; // For your forest of up-trees.
 
+    /**
+     * Finds the root pixel
+     * @param pixelID The pixel that you want to find the root of
+     * @return The pixel ID of the given pixel's root.
+     */
     int find(int pixelID) {
         while (parentID[getYcoord(pixelID)][getXcoord(pixelID)] != -1) {
             pixelID = parentID[getYcoord(pixelID)][getXcoord(pixelID)];
@@ -64,6 +71,12 @@ public class ImageComponents extends JFrame implements ActionListener {
         return pixelID;
     }         // Part of your UNION-FIND implementation. You need to complete the implementation of this.
 
+
+    /**
+     * Creates a union between the given pixels based on the instructor's union rules.
+     * @param pixelID1 One pixel to be unioned
+     * @param pixelID2 The second pixel to be unioned
+     */
     void union(int pixelID1, int pixelID2) {
         pixelID1 = find(pixelID1);
         pixelID2 = find(pixelID2);
@@ -74,10 +87,21 @@ public class ImageComponents extends JFrame implements ActionListener {
         }
     }  // Another part of your UNION-FIND implementation.  Also complete this one.
 
+
+    /**
+     * Returns the x coordinate of the given pixel
+     * @param pixelID The pixel that you want to find the x coordinate for
+     * @return The x coordinate of the given pixel
+     */
     private int getXcoord(int pixelID) {
         return pixelID % w;
     }
 
+    /**
+     * Returns the y coordinate of the given pixel
+     * @param pixelID The pixel that you want to find the y coordinate for
+     * @return The y coordinate of the given pixel
+     */
     private int getYcoord(int pixelID) {
         return pixelID / w;
     }
@@ -101,6 +125,11 @@ public class ImageComponents extends JFrame implements ActionListener {
             this.r = r; this.g = g; this.b = b;    		
         }
 
+        /**
+         * Calculates the euclidean distance between the current pixel and the given pixel
+         * @param c2 The pixel that you want to compare the current pixel to
+         * @return The distance between the current pixel and the given pixel
+         */
         double euclideanDistance(Color c2) {
             int redDiff = r - c2.r;
             int greenDiff = g - c2.g;
@@ -246,6 +275,9 @@ public class ImageComponents extends JFrame implements ActionListener {
         }
     }
 
+    /**
+     * Creates the parent ID array for the current image with no unions
+     */
     private void initializeParentIDArray() {
         parentID = new int[h][w];
         for (int y = 0; y < h; y++) {
@@ -365,19 +397,22 @@ public class ImageComponents extends JFrame implements ActionListener {
         bi.setRGB(x,  y, rgb);
     }
 
-    
+    /**
+     * Computes the relationships between the pixels in the current image and recolors the image based upon these
+     * relationships.
+     */
     void computeConnectedComponents() {
         int count = 0;
         for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
+            for (int x = 0; x < w; x++) { //Creates the edges between all of the pixels based on the instructor's rules
                 int currPixelID = (y) * w + x;
                 int neighborPixelID = y * w + x + 1;
-                if (x < w - 1 && find(currPixelID) != find(neighborPixelID)
-                    && biWorking.getRGB(x, y) == biWorking.getRGB(x + 1, y)) {
-                    union(currPixelID, neighborPixelID);
+                if (x < w - 1 && find(currPixelID) != find(neighborPixelID) //Checks if the pixel to the right of the
+                    && biWorking.getRGB(x, y) == biWorking.getRGB(x + 1, y)) { //current pixel exists, their parents
+                    union(currPixelID, neighborPixelID); //aren't the same, and their colors are identical.
                     count++;
                 }
-                neighborPixelID = (y + 1) * w + x;
+                neighborPixelID = (y + 1) * w + x; //Performs the same checks for the pixel below the current pixel
                 if (y < h - 1 && find(currPixelID) != find(neighborPixelID)
                     && biWorking.getRGB(x, y) == biWorking.getRGB(x, y + 1)) {
                     union(currPixelID, neighborPixelID);
@@ -388,7 +423,7 @@ public class ImageComponents extends JFrame implements ActionListener {
         System.out.println("The number of times that the method UNION was called for this image is: " + count + ".");
         count = 0;
         HashMap<Integer, Integer> componentNumber = new HashMap<Integer, Integer>();
-        for (int y = 0; y < h; y++) {
+        for (int y = 0; y < h; y++) { //Counts the total number of roots
             for (int x = 0; x < w; x++) {
                 if (parentID[y][x] == -1) {
                     componentNumber.put(y * w + x, count);
@@ -398,7 +433,7 @@ public class ImageComponents extends JFrame implements ActionListener {
         }
         System.out.println("The number of connected components in this image is: " + count + ".");
         ProgressiveColors progressiveColors = new ProgressiveColors();
-        for (int y = 0; y < h; y++) {
+        for (int y = 0; y < h; y++) { //Recolors the image based on the current pixel's root.
             for (int x = 0; x < w; x++) {
                 Integer rootID = find(y * w + x);
                 int[] rgb = progressiveColors.progressiveColor(componentNumber.get(rootID));
