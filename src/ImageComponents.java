@@ -1,6 +1,6 @@
 /*
  * ImageComponents.java
- * A4 Solution by Michael Dang 1235845.
+ * A4 Solution by Michael Dang, mwldang@uw.edu.
  *
  * This program allows images to be edited with various image tools. In addition to allowing the images to be
  * manipulated, this program can use also use UNION-FIND logic to recolor the image.
