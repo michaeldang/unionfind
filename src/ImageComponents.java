@@ -52,7 +52,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 public class ImageComponents extends JFrame implements ActionListener {
     public static ImageComponents appInstance; // Used in main().
 
-    String startingImage = "gettysburg-address-p1.png";
+    String startingImage = "donut2.png";
     BufferedImage biTemp, biWorking, biFiltered; // These hold arrays of pixels.
     Graphics gOrig, gWorking; // Used to access the drawImage method.
     int w; // width of the current image.
@@ -140,19 +140,31 @@ public class ImageComponents extends JFrame implements ActionListener {
         }
     }
 
-    public class Edge {
-        int endpoint0, endPoint1, weight;
+    public class Edge implements Comparable<Edge> {
+        private int endPoint0, endPoint1, weight;
 
         public Edge(int endpoint0, int endPoint1, int weight) {
-            this.endpoint0 = endpoint0;
+            this.endPoint0 = endpoint0;
             this.endPoint1 = endPoint1;
             this.weight = weight;
         }
 
+        public int getEndpoint0() {
+            return endPoint0;
+        }
+
+        public int getEndPoint1() {
+            return endPoint1;
+        }
+
+        public int getWeight() {
+            return weight;
+        }
+
         public int compareTo(Edge e2) {
-            if (weight > e2.weight) {
+            if (weight > e2.getWeight()) {
                 return 1;
-            } else if (weight == e2.weight) {
+            } else if (weight == e2.getWeight()) {
                 return 0;
             } else {
                 return -1;
@@ -293,7 +305,6 @@ public class ImageComponents extends JFrame implements ActionListener {
             biFiltered = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
             pack(); // Lay out the JFrame and set its size.
             repaint();
-            initializeParentIDArray();
         } catch (IOException e) {
             System.out.println("Image could not be read: "+filename);
             System.exit(1);
@@ -375,6 +386,7 @@ public class ImageComponents extends JFrame implements ActionListener {
             }
             System.out.println("nregions is "+nregions);
             // Call your image segmentation method here.
+            segmentImage(nregions);
         }
     }
     void handleHelpMenu(JMenuItem mi){
@@ -440,6 +452,7 @@ public class ImageComponents extends JFrame implements ActionListener {
      * relationships.
      */
     void computeConnectedComponents() {
+        initializeParentIDArray();
         int count = 0;
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) { //Creates the edges between all of the pixels based on the instructor's rules
@@ -479,6 +492,41 @@ public class ImageComponents extends JFrame implements ActionListener {
             }
         }
         repaint();
+    }
+
+    private void segmentImage(int givenNumSegments) {
+        initializeParentIDArray();
+        PriorityQueue<Edge> edges = new PriorityQueue<Edge>();
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int currPixelID = (y) * w + x;
+                int currPixelRGB = biWorking.getRGB(getXcoord(currPixelID), getYcoord(currPixelID));
+                Color currColor = new Color(currPixelRGB >> 16 & 255, currPixelRGB >> 8 & 255, currPixelRGB & 255);
+                if (x < w - 1 ) {
+                    int neighborPixelID = y * w + x + 1;
+                    int neighborPixelRGB = biWorking.getRGB(getXcoord(neighborPixelID), getYcoord(neighborPixelID));
+                    Color neighborColor = new Color(neighborPixelRGB >> 16 & 255, neighborPixelRGB >> 8 & 255, neighborPixelRGB & 255);
+                    double colorDist = currColor.euclideanDistance(neighborColor);
+                    edges.add(new Edge(currPixelID, neighborPixelID, (int) (colorDist * colorDist)));
+                }
+                if (y < h - 1) {
+                    int neighborPixelID = (y + 1) * w + x;
+                    int neighborPixelRGB = biWorking.getRGB(getXcoord(neighborPixelID), getYcoord(neighborPixelID));
+                    Color neighborColor = new Color(neighborPixelRGB >> 16 & 255, neighborPixelRGB >> 8 & 255, neighborPixelRGB & 255);
+                    double colorDist = currColor.euclideanDistance(neighborColor);
+                    edges.add(new Edge(currPixelID, neighborPixelID, (int) (colorDist * colorDist)));
+                }
+            }
+        }
+        int numSegments = w * h;
+        while (numSegments > givenNumSegments) {
+            Edge currentEdge = edges.remove();
+            int pixelID0 = currentEdge.getEndpoint0();
+            int pixelID1 = currentEdge.getEndPoint1();
+            if (find(pixelID0) != find(pixelID1)) {
+                union(pixelID0, pixelID1);
+            }
+        }
     }
 
     /* This main method can be used to run the application. */
