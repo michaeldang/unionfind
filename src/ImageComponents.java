@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.PriorityQueue;
 
 import javax.imageio.ImageIO;
 import javax.swing.JCheckBoxMenuItem;
@@ -114,6 +115,7 @@ public class ImageComponents extends JFrame implements ActionListener {
     JMenuItem lowPassItem, highPassItem, photoNegItem, RGBThreshItem;
 
     JMenuItem CCItem1;
+    JMenuItem CCItem2;
     JMenuItem aboutItem, helpItem;
     
     JFileChooser fileChooser; // For loading and saving images.
@@ -135,6 +137,26 @@ public class ImageComponents extends JFrame implements ActionListener {
             int greenDiff = g - c2.g;
             int blueDiff = b - c2.b;
             return Math.sqrt(redDiff * redDiff + greenDiff * greenDiff + blueDiff * blueDiff);
+        }
+    }
+
+    public class Edge {
+        int endpoint0, endPoint1, weight;
+
+        public Edge(int endpoint0, int endPoint1, int weight) {
+            this.endpoint0 = endpoint0;
+            this.endPoint1 = endPoint1;
+            this.weight = weight;
+        }
+
+        public int compareTo(Edge e2) {
+            if (weight > e2.weight) {
+                return 1;
+            } else if (weight == e2.weight) {
+                return 0;
+            } else {
+                return -1;
+            }
         }
     }
 
@@ -208,6 +230,9 @@ public class ImageComponents extends JFrame implements ActionListener {
         CCItem1 = new JMenuItem("Compute Connected Components and Recolor");
         CCItem1.addActionListener(this);
         ccMenu.add(CCItem1);
+        CCItem2 = new JMenuItem("Segment Image and Recolor");
+        CCItem2.addActionListener(this);
+        ccMenu.add(CCItem2);
         
         // Create the Help menu's item.
         aboutItem = new JMenuItem("About");
@@ -338,6 +363,19 @@ public class ImageComponents extends JFrame implements ActionListener {
     void handleCCMenu(JMenuItem mi) {
         System.out.println("A connected components menu item was selected.");
         if (mi==CCItem1) { computeConnectedComponents(); }
+        if (mi==CCItem2) {
+            int nregions = 25; // default value.
+            String inputValue = JOptionPane.showInputDialog("Please input the number of regions desired");
+            try {
+                nregions = (new Integer(inputValue)).intValue();
+            }
+            catch(Exception e) {
+                System.out.println(e);
+                System.out.println("That did not convert to an integer. Using the default: 25.");
+            }
+            System.out.println("nregions is "+nregions);
+            // Call your image segmentation method here.
+        }
     }
     void handleHelpMenu(JMenuItem mi){
         System.out.println("A help menu item was selected.");
@@ -441,7 +479,6 @@ public class ImageComponents extends JFrame implements ActionListener {
             }
         }
         repaint();
-
     }
 
     /* This main method can be used to run the application. */
