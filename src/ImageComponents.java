@@ -52,14 +52,14 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 public class ImageComponents extends JFrame implements ActionListener {
     public static ImageComponents appInstance; // Used in main().
 
-    String startingImage = "4sections.png";
+    String startingImage = "donut2.png";
     BufferedImage biTemp, biWorking, biFiltered; // These hold arrays of pixels.
     Graphics gOrig, gWorking; // Used to access the drawImage method.
     int w; // width of the current image.
     int h; // height of the current image.
 
-    private static final int NUM_SEGMENTS_CHECK = 0;
-    private static final int DELTA_CHECK = 1;
+    private static final int NUM_SEGMENTS_CHECK = 0; //Constant to indicate when the user chose to color by the number of segments
+    private static final int DELTA_CHECK = 1; //Constant to indicate when the user chose to color by the weight delta
 
 
     int[][] parentID; // For your forest of up-trees.
@@ -137,43 +137,72 @@ public class ImageComponents extends JFrame implements ActionListener {
          * @param c2 The pixel that you want to compare the current pixel to
          * @return The distance between the current pixel and the given pixel
          */
-        double euclideanDistance(Color c2) {
+        int euclideanDistance(Color c2) {
             int redDiff = r - c2.r;
             int greenDiff = g - c2.g;
             int blueDiff = b - c2.b;
-            return Math.sqrt(redDiff * redDiff + greenDiff * greenDiff + blueDiff * blueDiff);
+            return redDiff * redDiff + greenDiff * greenDiff + blueDiff * blueDiff;
         }
     }
 
+    /**
+     * Used when creating relationships between pixels.
+     */
     public class Edge implements Comparable<Edge> {
         private int endPoint0, endPoint1, weight;
 
-        public Edge(int endpoint0, int endPoint1, int weight) {
+        /**
+         * Creates an Edge with the given values
+         * @param endpoint0
+         * @param endPoint1
+         * @param weight
+         */
+        public Edge(int endpoint0, int endPoint1) {
             this.endPoint0 = endpoint0;
             this.endPoint1 = endPoint1;
-            this.weight = weight;
+            int endPoint0RGB = biWorking.getRGB(getXcoord(endpoint0), getYcoord(endpoint0));
+            Color endPoint0Color = new Color(endPoint0RGB >> 16 & 255, endPoint0RGB >> 8 & 255, endPoint0RGB & 255);
+            int endPoint1RGB = biWorking.getRGB(getXcoord(endPoint1), getYcoord(endPoint1));
+            Color endPoint1Color = new Color(endPoint1RGB >> 16 & 255, endPoint1RGB >> 8 & 255, endPoint1RGB & 255);
+            weight = endPoint0Color.euclideanDistance(endPoint1Color);
         }
 
+        /**
+         * Returns the first endpoint in the current Edge
+         * @return The first endpoint in the current Edge
+         */
         public int getEndpoint0() {
             return endPoint0;
         }
 
+        /**
+         * Returns the second endpoint in the current Edge
+         * @return The second endpoint in the current Edge
+         */
         public int getEndPoint1() {
             return endPoint1;
         }
 
+        /**
+         * Returns the weight of the current Edge
+         * @return The weight of the current Edge
+         */
         public int getWeight() {
             return weight;
         }
 
+        /**
+         * Compares the weight of the current Edge to the given Edge.
+         * @param e2 The Edge that you want to compare the current Edge to
+         * @return 1 if the current Edge has a greater weight, 0 if equal, and -1 if the current Edge has a lesser weight
+         */
         public int compareTo(Edge e2) {
             if (weight > e2.getWeight()) {
                 return 1;
             } else if (weight == e2.getWeight()) {
                 return 0;
-            } else {
-                return -1;
             }
+            return -1;
         }
     }
 
@@ -504,21 +533,13 @@ public class ImageComponents extends JFrame implements ActionListener {
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 int currPixelID = (y) * w + x;
-                int currPixelRGB = biWorking.getRGB(getXcoord(currPixelID), getYcoord(currPixelID));
-                Color currColor = new Color(currPixelRGB >> 16 & 255, currPixelRGB >> 8 & 255, currPixelRGB & 255);
                 if (x < w - 1 ) {
                     int neighborPixelID = y * w + x + 1;
-                    int neighborPixelRGB = biWorking.getRGB(getXcoord(neighborPixelID), getYcoord(neighborPixelID));
-                    Color neighborColor = new Color(neighborPixelRGB >> 16 & 255, neighborPixelRGB >> 8 & 255, neighborPixelRGB & 255);
-                    double colorDist = currColor.euclideanDistance(neighborColor);
-                    edges.add(new Edge(currPixelID, neighborPixelID, (int) (colorDist * colorDist)));
+                    edges.add(new Edge(currPixelID, neighborPixelID));
                 }
                 if (y < h - 1) {
                     int neighborPixelID = (y + 1) * w + x;
-                    int neighborPixelRGB = biWorking.getRGB(getXcoord(neighborPixelID), getYcoord(neighborPixelID));
-                    Color neighborColor = new Color(neighborPixelRGB >> 16 & 255, neighborPixelRGB >> 8 & 255, neighborPixelRGB & 255);
-                    double colorDist = currColor.euclideanDistance(neighborColor);
-                    edges.add(new Edge(currPixelID, neighborPixelID, (int) (colorDist * colorDist)));
+                    edges.add(new Edge(currPixelID, neighborPixelID));
                 }
             }
         }
