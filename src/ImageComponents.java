@@ -52,11 +52,15 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 public class ImageComponents extends JFrame implements ActionListener {
     public static ImageComponents appInstance; // Used in main().
 
-    String startingImage = "gettysburg-address-p1.png";
+    String startingImage = "4sections.png";
     BufferedImage biTemp, biWorking, biFiltered; // These hold arrays of pixels.
     Graphics gOrig, gWorking; // Used to access the drawImage method.
     int w; // width of the current image.
     int h; // height of the current image.
+
+    private static final int NUM_SEGMENTS_CHECK = 0;
+    private static final int DELTA_CHECK = 1;
+
 
     int[][] parentID; // For your forest of up-trees.
 
@@ -116,6 +120,7 @@ public class ImageComponents extends JFrame implements ActionListener {
 
     JMenuItem CCItem1;
     JMenuItem CCItem2;
+    JMenuItem CCItem3;
     JMenuItem aboutItem, helpItem;
     
     JFileChooser fileChooser; // For loading and saving images.
@@ -245,6 +250,9 @@ public class ImageComponents extends JFrame implements ActionListener {
         CCItem2 = new JMenuItem("Segment Image and Recolor");
         CCItem2.addActionListener(this);
         ccMenu.add(CCItem2);
+        CCItem3 = new JMenuItem("Segment Image Using a Maximum Pixel DELTA");
+        CCItem3.addActionListener(this);
+        ccMenu.add(CCItem3);
         
         // Create the Help menu's item.
         aboutItem = new JMenuItem("About");
@@ -386,7 +394,22 @@ public class ImageComponents extends JFrame implements ActionListener {
             }
             System.out.println("nregions is "+nregions);
             // Call your image segmentation method here.
-            segmentImage(nregions);
+            segmentImage(NUM_SEGMENTS_CHECK, nregions);
+
+        }
+        if (mi==CCItem3) {
+            int delta = 12; // default value.
+            String inputValue = JOptionPane.showInputDialog("Please input the delta desired for segmenting");
+            try {
+                delta = (new Integer(inputValue)).intValue();
+            }
+            catch(Exception e) {
+                System.out.println(e);
+                System.out.println("That did not convert to an integer. Using the default: 12.");
+            }
+            System.out.println("delta is "+ delta);
+            // Call your image segmentation method here.
+            segmentImage(DELTA_CHECK, delta);
         }
     }
     void handleHelpMenu(JMenuItem mi){
@@ -475,7 +498,7 @@ public class ImageComponents extends JFrame implements ActionListener {
         recolorImage();
     }
 
-    private void segmentImage(int givenNumSegments) {
+    private void segmentImage(int segmentStyle, int givenValue) {
         initializeParentIDArray();
         PriorityQueue<Edge> edges = new PriorityQueue<Edge>();
         for (int y = 0; y < h; y++) {
@@ -499,15 +522,34 @@ public class ImageComponents extends JFrame implements ActionListener {
                 }
             }
         }
-        for (int numSegments = w * h; numSegments > givenNumSegments;) {
-            Edge currentEdge = edges.remove();
-            int pixelID0 = currentEdge.getEndpoint0();
-            int pixelID1 = currentEdge.getEndPoint1();
-            if (find(pixelID0) != find(pixelID1)) {
-                union(pixelID0, pixelID1);
-                numSegments--;
-            }
+        switch(segmentStyle) {
+            case DELTA_CHECK:
+                if (edges.size() > 0) {
+                    Edge currentEdge = edges.remove();
+                    while (currentEdge != null && currentEdge.weight <= givenValue) {
+                        int pixelID0 = currentEdge.getEndpoint0();
+                        int pixelID1 = currentEdge.getEndPoint1();
+                        if (find(pixelID0) != find(pixelID1)) {
+                            union(pixelID0, pixelID1);
+                        }
+                        currentEdge = (edges.size() > 0) ? edges.remove() : null;
+                    }
+                }
+                break;
+            case NUM_SEGMENTS_CHECK:
+                int numSegments = w * h;
+                while (numSegments > givenValue) {
+                    Edge currentEdge = edges.remove();
+                    int pixelID0 = currentEdge.getEndpoint0();
+                    int pixelID1 = currentEdge.getEndPoint1();
+                    if (find(pixelID0) != find(pixelID1)) {
+                        union(pixelID0, pixelID1);
+                        numSegments--;
+                    }
+                }
+                break;
         }
+
         recolorImage();
     }
 
