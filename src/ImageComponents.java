@@ -52,7 +52,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 public class ImageComponents extends JFrame implements ActionListener {
     public static ImageComponents appInstance; // Used in main().
 
-    String startingImage = "donut2.png";
+    String startingImage = "gettysburg-address-p1.png";
     BufferedImage biTemp, biWorking, biFiltered; // These hold arrays of pixels.
     Graphics gOrig, gWorking; // Used to access the drawImage method.
     int w; // width of the current image.
@@ -472,26 +472,7 @@ public class ImageComponents extends JFrame implements ActionListener {
             }
         }
         System.out.println("The number of times that the method UNION was called for this image is: " + count + ".");
-        count = 0;
-        HashMap<Integer, Integer> componentNumber = new HashMap<Integer, Integer>();
-        for (int y = 0; y < h; y++) { //Counts the total number of roots
-            for (int x = 0; x < w; x++) {
-                if (parentID[y][x] == -1) {
-                    componentNumber.put(y * w + x, count);
-                    count++;
-                }
-            }
-        }
-        System.out.println("The number of connected components in this image is: " + count + ".");
-        ProgressiveColors progressiveColors = new ProgressiveColors();
-        for (int y = 0; y < h; y++) { //Recolors the image based on the current pixel's root.
-            for (int x = 0; x < w; x++) {
-                Integer rootID = find(y * w + x);
-                int[] rgb = progressiveColors.progressiveColor(componentNumber.get(rootID));
-                putPixel(biWorking, x, y, rgb[0], rgb[1], rgb[2]);
-            }
-        }
-        repaint();
+        recolorImage();
     }
 
     private void segmentImage(int givenNumSegments) {
@@ -518,15 +499,39 @@ public class ImageComponents extends JFrame implements ActionListener {
                 }
             }
         }
-        int numSegments = w * h;
-        while (numSegments > givenNumSegments) {
+        for (int numSegments = w * h; numSegments > givenNumSegments;) {
             Edge currentEdge = edges.remove();
             int pixelID0 = currentEdge.getEndpoint0();
             int pixelID1 = currentEdge.getEndPoint1();
             if (find(pixelID0) != find(pixelID1)) {
                 union(pixelID0, pixelID1);
+                numSegments--;
             }
         }
+        recolorImage();
+    }
+
+    private void recolorImage() {
+        int count = 0;
+        HashMap<Integer, Integer> componentNumber = new HashMap<Integer, Integer>();
+        for (int y = 0; y < h; y++) { //Counts the total number of roots
+            for (int x = 0; x < w; x++) {
+                if (parentID[y][x] == -1) {
+                    componentNumber.put(y * w + x, count);
+                    count++;
+                }
+            }
+        }
+        System.out.println("The number of connected components in this image is: " + count + ".");
+        ProgressiveColors progressiveColors = new ProgressiveColors();
+        for (int y = 0; y < h; y++) { //Recolors the image based on the current pixel's root.
+            for (int x = 0; x < w; x++) {
+                Integer rootID = find(y * w + x);
+                int[] rgb = progressiveColors.progressiveColor(componentNumber.get(rootID));
+                putPixel(biWorking, x, y, rgb[0], rgb[1], rgb[2]);
+            }
+        }
+        repaint();
     }
 
     /* This main method can be used to run the application. */
