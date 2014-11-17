@@ -152,10 +152,9 @@ public class ImageComponents extends JFrame implements ActionListener {
         private int endPoint0, endPoint1, weight;
 
         /**
-         * Creates an Edge with the given values
-         * @param endpoint0
-         * @param endPoint1
-         * @param weight
+         * Creates an Edge with the given endpoints
+         * @param endpoint0 The first endpoint used in creating the Edge
+         * @param endPoint1 The second endpoint used in creating the Edge
          */
         public Edge(int endpoint0, int endPoint1) {
             this.endPoint0 = endpoint0;
@@ -527,6 +526,13 @@ public class ImageComponents extends JFrame implements ActionListener {
         recolorImage();
     }
 
+    /**
+     * Computes the relationships between the pixels using Kruskal's algorithm in the current image and recolors the
+     * image based upon these relationships.
+     * @param segmentStyle The indicator for whether you wish to compute relationships based on the number of spanning
+     *                     trees or by the endpoint weights
+     * @param givenValue The given delta or number of spanning trees value
+     */
     private void segmentImage(int segmentStyle, int givenValue) {
         initializeParentIDArray();
         PriorityQueue<Edge> edges = new PriorityQueue<Edge>();
@@ -574,6 +580,9 @@ public class ImageComponents extends JFrame implements ActionListener {
         recolorImage();
     }
 
+    /**
+     * Recolors the image using previously computed pixel relationships
+     */
     private void recolorImage() {
         int count = 0;
         HashMap<Integer, Integer> componentNumber = new HashMap<Integer, Integer>();
