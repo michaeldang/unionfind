@@ -3,7 +3,7 @@
  * A4 Solution by Michael Dang, mwldang@uw.edu.
  *
  * This program allows images to be edited with various image tools. In addition to allowing the images to be
- * manipulated, this program can use also use UNION-FIND logic to recolor the image.
+ * manipulated, this program can use also use UNION-FIND logic or Kruskal's algorithm to recolor the image.
  * 
  * CSE 373, University of Washington, Autumn 2014.
  * 
@@ -124,10 +124,19 @@ public class ImageComponents extends JFrame implements ActionListener {
     JMenuItem aboutItem, helpItem;
     
     JFileChooser fileChooser; // For loading and saving images.
-    
-    public class Color {
-        int r, g, b;
 
+    /**
+     * Used for storing color information and calculating the euclidean distance between them
+     */
+    public class Color {
+        int r, g, b; //The pixel's red, green, and blue values
+
+        /**
+         * Constructs a Color with the given red, green, and blue values
+         * @param r The given red value
+         * @param g The given green value
+         * @param b The given blue value
+         */
         Color(int r, int g, int b) {
             this.r = r; this.g = g; this.b = b;    		
         }
@@ -410,7 +419,7 @@ public class ImageComponents extends JFrame implements ActionListener {
     void handleCCMenu(JMenuItem mi) {
         System.out.println("A connected components menu item was selected.");
         if (mi==CCItem1) { computeConnectedComponents(); }
-        if (mi==CCItem2) {
+        if (mi==CCItem2) { //Segments and recolors the image based on the given number of regions
             int nregions = 25; // default value.
             String inputValue = JOptionPane.showInputDialog("Please input the number of regions desired");
             try {
@@ -425,7 +434,7 @@ public class ImageComponents extends JFrame implements ActionListener {
             segmentImage(NUM_SEGMENTS_CHECK, nregions);
 
         }
-        if (mi==CCItem3) {
+        if (mi==CCItem3) { //Segments and recolors the image based on the given delta
             int delta = 12; // default value.
             String inputValue = JOptionPane.showInputDialog("Please input the delta desired for segmenting");
             try {
